@@ -33,7 +33,7 @@ void example1() {
     // Don't bother with this function. It is only needed to demonstrate the coordinates.
     drawAxes(scene, redPen);
 
-    scene->addRect(40,10,50,50, bluePen);
+    scene->addRect(40,10,50,50, bluePen, QBrush(Qt::GlobalColor::red));
 
     QGraphicsView * view = new QGraphicsView(scene);
     view->show();
@@ -51,6 +51,7 @@ void example2() {
     public:
         MyRect() {
             setPen(bluePen);
+            setBrush(QBrush(Qt::GlobalColor::red));
             setRect(40,10,50,50);
         }
     };
@@ -93,6 +94,7 @@ void example4() {
 
     QGraphicsRectItem * rect = new QGraphicsRectItem(0,0,50,50);
     rect->setPen(bluePen);
+    rect->setBrush(QBrush(Qt::GlobalColor::red));
 
     scene->addItem(rect);
 
@@ -104,45 +106,50 @@ void example4() {
         rect->moveBy(10,10);
     });
 
-    timer->start(200);
+    timer->start(150);
 
     QGraphicsView * view = new QGraphicsView(scene);
     view->show();
 }
 
 /*
- * Draw a rect that bounce back every time it hits a border
+ * Draw a pixmap that bounce back every time it hits a border
  * of a scene.
  */
 void example5() {
     QGraphicsScene * scene = new QGraphicsScene(0,0,SceneWidth, SceneHeight);
     drawAxes(scene, redPen);
 
-    QGraphicsRectItem * rect = new QGraphicsRectItem(0,0,50,50);
-    rect->setBrush(Qt::GlobalColor::red);
+    QPixmap pixmap(":/img/res/bart.png");
+    pixmap = pixmap.scaled(70, 70, Qt::AspectRatioMode::KeepAspectRatio);
+    QGraphicsPixmapItem * picture = new QGraphicsPixmapItem(pixmap);
 
-    scene->addItem(rect);
-    scene->setBackgroundBrush(QBrush(QColor(Qt::GlobalColor::darkBlue)));
+    QGraphicsRectItem * background = new QGraphicsRectItem(picture->boundingRect());
+    background->setBrush(QBrush(QColor(rand() % 255, rand() % 255, rand() % 255)));
+
+    scene->addItem(background);
+    scene->addItem(picture);
 
     QTimer * timer = new QTimer;
 
     std::pair<double, double> * direction = new std::pair{1.5, 3.5};
     // !!!it is important to copy the pointer, otherwise an error occurs
-    QObject::connect(timer, &QTimer::timeout, [rect, scene, direction]() {
+    QObject::connect(timer, &QTimer::timeout, [=]() {
         // rect hits right or left border
-        if (rect->x() + rect->rect().width() + direction->first > scene->sceneRect().width()
-            || rect->x() + direction->first < 0) {
+        if (picture->x() + picture->boundingRect().width() + direction->first > scene->sceneRect().width()
+            || picture->x() + direction->first < 0) {
             direction->first *= -1;
-            rect->setBrush(QBrush(QColor(rand() % 255, rand() % 255, rand() % 255)));
+            background->setBrush(QBrush(QColor(rand() % 255, rand() % 255, rand() % 255)));
         }
         // rect hits top or bottom border
-        if (rect->y() + rect->rect().height() + direction->second > scene->sceneRect().height()
-            || rect->y() + direction->second < 0) {
+        if (picture->y() + picture->boundingRect().height() + direction->second > scene->sceneRect().height()
+            || picture->y() + direction->second < 0) {
             direction->second *= -1;
-            rect->setBrush(QBrush(QColor(rand() % 255, rand() % 255, rand() % 255)));
+            background->setBrush(QBrush(QColor(rand() % 255, rand() % 255, rand() % 255)));
         }
 
-        rect->moveBy(direction->first, direction->second);
+        picture->moveBy(direction->first, direction->second);
+        background->moveBy(direction->first, direction->second);
     });
 
     timer->start(1000/60);

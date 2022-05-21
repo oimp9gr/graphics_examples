@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/img">
         <file>res/smile.png</file>
-        <file>res/discoman.png</file>
+        <file>res/bart.png</file>
     </qresource>
 </RCC>
